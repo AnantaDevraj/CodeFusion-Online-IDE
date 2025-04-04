@@ -1,12 +1,37 @@
-import React from 'react'
+import React, { useEffect , useState } from 'react'
 import logo from "../images/logo.png";
 import { Link } from 'react-router-dom';
 import Avatar from 'react-avatar';
 import { MdLightMode } from "react-icons/md";
 import { BsFillGridFill } from "react-icons/bs";
-import { toggleClass } from '../pages/helper';
+import { api_base_url, toggleClass } from '../pages/helper';
+
+
 
 const Navbar = () => {
+
+  const [data, setData] = useState(null);
+  const [error, setError] = useState("");
+
+    useEffect(() => {
+      fetch(api_base_url + "/getUserDetails" , {
+        mode : "cors",
+        method : "POST",
+        headers :{
+          "Content-Type" : "application/json",
+        },
+        body :JSON.stringify({
+          userId : localStorage.getItem("userId"),
+        })
+      }).then((res) => res.json()).then((data) =>{
+        if (data.success){
+          setData(data.user);
+        }else{
+          setError(data.message);
+        }
+      })
+    }, [])
+
   return (
     <div>
       <div className="navbar flex items-center justify-between px-[100px] h-[80px] bg-[#141414]">
@@ -18,7 +43,7 @@ const Navbar = () => {
           <Link>About</Link>
           <Link>Contact</Link>
           <Link>Services</Link>
-          <Avatar onClick={()=>{toggleClass(".dropDownNavbar" , "hidden")}} name="Wim Mostmans" size="40" round="50%" className='cursor-pointer ml-2'/>
+          <Avatar onClick={()=>{toggleClass(".dropDownNavbar" , "hidden")}} name= {data ? data.name : ""} size="40" round="50%" className='cursor-pointer ml-2'/>
         </div>
 
         <div className="dropDownNavbar hidden absolute right-[60px] top-[80px] shadow-lg rounded-lg shadow-black/50 p-[10px] bg-[#1A1919] w-[150px] h-[150px]">
