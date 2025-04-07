@@ -13,7 +13,7 @@ connectDB();
 
 /* GET home page. */
 router.get("/", (req, res) => {
-  res.render("index", { title: "Express" });
+  res.render("index.js", { title: "Express" });
 });
 
 const secret = "secret";
@@ -74,7 +74,6 @@ router.post("/getUserDetails" , async(req , res) =>{
 })
 
 //project API
-
 router.post("/createProject" , async(req , res) =>{
   let {userId , title} = req.body;
   let user = await userModel.findOne({_id : userId});
@@ -90,5 +89,16 @@ router.post("/createProject" , async(req , res) =>{
   }
 })
 
+//fetch Projeccts:
+router.post("/getProjets" , async(req , res) =>{
+  let {userId} = req.body;
+  let user = await userModel.findOne({_id : userId});
+  if (user){
+    let projects = await projectModel.findOne({createdBy : userId});
+    return res.json({success : true , message : "Projects fetched successfully" , projects : projects});
+  }else{
+    return res.json({success : false , message : "User not found !"});
+  }
+})
 
 export default router;
