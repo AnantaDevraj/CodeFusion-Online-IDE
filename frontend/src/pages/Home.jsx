@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import GridCard from "../components/GridCard";
 import Listcard from "../components/Listcard";
@@ -7,6 +7,9 @@ import { useNavigate } from "react-router-dom";
 const Home = () => {
   const [isGridLayout, setisGridLayout] = useState(false);
   const [isCreateModelShow, setIsCreateModelShow] = useState(false);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState("");
+
   const navigate = useNavigate();
   const [projectTitle, setProjectTitle] = useState("");
 
@@ -15,27 +18,54 @@ const Home = () => {
       alert("Please enter project title");
     } else {
       fetch(api_base_url + "/createProject", {
-        mode : "cors",
-        method : "POST",
-        headers :{
-          "Content-type" : "application/json"
+        mode: "cors",
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
         },
-        body : JSON.stringify({
-          title : projectTitle,
-          userId : localStorage.getItem("userId")
-        })
-      }).then(res => res.json()).then((data) => {
-        if (data.success){
-          setIsCreateModelShow(false)
-          setProjectTitle("")
-          alert("Project created successfully")
-          navigate(`/editor/${data.projectId}`)
-        }else{
-          alert("Something went wrong")
-        }
+        body: JSON.stringify({
+          title: projectTitle,
+          userId: localStorage.getItem("userId"),
+        }),
       })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setIsCreateModelShow(false);
+            setProjectTitle("");
+            alert("Project created successfully");
+            navigate(`/editor/${data.projectId}`);
+          } else {
+            alert("Something went wrong");
+          }
+        });
     }
   };
+
+  const getProject = () => {
+    fetch(api_base_url + "/getProjets", {
+      mode: "cors",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: localStorage.getItem("userId"),
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setData(data.projects);
+        } else {
+          setError(data.message);
+        }
+      });
+  };
+
+  useEffect(() => {
+    getProject();
+  }, []);
 
   return (
     <div>
@@ -60,16 +90,23 @@ const Home = () => {
       <div className="cards">
         {isGridLayout ? (
           <div className=" grid px-[100px]">
+            {Array.isArray(data)
+              ? data.map((item, index) => <GridCard key={index} item={item} />)
+              : null}
+            {/* <GridCard />
             <GridCard />
             <GridCard />
-            <GridCard />
-            <GridCard />
+            <GridCard /> */}
           </div>
         ) : (
           <div className="list px-[100px]">
+            {Array.isArray(data)
+              ? data.map((item, index) => <Listcard key={index} item={item} />)
+              : null}
+            {
+            /* <Listcard />
             <Listcard />
-            <Listcard />
-            <Listcard />
+            <Listcard /> */}
           </div>
         )}
       </div>
@@ -90,7 +127,10 @@ const Home = () => {
             </div>
 
             <div className="flex items-center gap-[10px] w-[full] mt-2">
-              <button onClick={createproject} className="btnBlue rounded-[5px] w-[49%] mb-4 !p-[5px] !px-[10px] !py-[10px]">
+              <button
+                onClick={createproject}
+                className="btnBlue rounded-[5px] w-[49%] mb-4 !p-[5px] !px-[10px] !py-[10px]"
+              >
                 Create
               </button>
               <button
